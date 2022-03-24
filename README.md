@@ -38,3 +38,6 @@ Syntax for program call:
 ```bash
 python3 graphsql.py "task=clique;table=wikiVote;source=i;destination=j;k=3"
 ```
+
+* The generated SQL code will be saved in `graphsql.sql` in the same directory as the script.
+* Any warnings or mild errors will be logged to `graphsql.log` in the same directory as the script.
