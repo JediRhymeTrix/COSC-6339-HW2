@@ -31,7 +31,7 @@ class Arguments(object):
 # The DBConnectionManager class is a class that manages the connection to the database
 class DBConnectionManager(object):
 
-    _create_key = object()
+    _create_key = object()  # used to ensure that only one connection is created
 
     _conn = None
     _tunnel = None
@@ -125,7 +125,7 @@ class QueryBuilder(object):
         #
         # The key is the variable name to be found in the string.
         #
-        :return: a string that is the query to be sent to the database.
+        :return: a dictionary containing a mapping of variables to the values to replace them with.
         """
         return {
             # v1, v2, v3... vk
