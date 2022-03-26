@@ -130,16 +130,19 @@ class QueryBuilder(object):
         return {
             # v1, v2, v3... vk
             '%V%': ', '.join(['v{}'.format(i) for i in range(1, self._k+1)]),
+            # v1, v2, v3... vk-2, vk
+            '%Vk%': ', '.join(['v{}'.format(i) for i in range(1, self._k-1)] + ['v{}'.format(self._k, self._k+1)]),
             '%SOURCE%': self._source,
             '%DESTINATION%': self._destination,
-            # 0's for placeholders for sub-query fields
-            '%0%': ', '.join(['0'] * (self._k - 2)),
+            '%DESTINATION_K%': ', '.join([self._destination] * self._k),
             '%TABLE%': self._table,
             # solution.v1, solution.v2, solution.v3... solution.vk-2, solution.vk (skip vk-1)
             '%SOLUTION.V%': ', '.join(['solution.v{}'.format(i) for i in range(1, self._k-1)] + ['solution.v{}'.format(i) for i in range(self._k, self._k+1)]),
-            # v1 < v2 AND v2 < v3 AND... vk-1 < vk
-            '%V<V%': ' and '.join(['v{} < v{}'.format(i, i+1) for i in range(1, self._k)]),
+            # v1 < v2 AND... vk-1 < vk
+            '%V<V%': ' AND '.join(['v{} < v{}'.format(i, i+1) for i in range(1, self._k-2)] + ['v{} < v{}'.format(self._k-2, self._k)]),
             '%K%': str(self._k),
+            # wikiVote.j in (SELECT j FROM wikiVote w WHERE w.i=vi) and [where vi = v1...vk]
+            '%LOOP%': '\n    '.join([f'{self._table}.{self._destination} in (SELECT {self._destination} FROM {self._table} w WHERE w.{self._source}=v{i}) AND ' for i in range(1, self._k+1)]),
         }
 
     def get_text(self):
@@ -190,27 +193,28 @@ if __name__ == '__main__':
         query_template = (
             f'DROP TABLE IF EXISTS {OUTPUT_TABLE_NAME};\n'
             f'CREATE TABLE {OUTPUT_TABLE_NAME} AS\n'
-            'WITH RECURSIVE solution\n'
-            '(%V%, t, d) AS\n'
-            '(\n'
-            '    SELECT %SOURCE%, %DESTINATION%, %0% ,%DESTINATION%, 1\n'
-            '    FROM %TABLE%\n'
-            '    UNION ALL\n'
-            '    SELECT %SOLUTION.V%, solution.t, %TABLE%.%DESTINATION%, solution.d+1\n'
-            '    FROM solution\n'
-            '    JOIN %TABLE% ON %TABLE%.%SOURCE%=solution.t\n'
-            '    WHERE d < %K%\n'
-            ')\n'
-            'SELECT %V%\n'
-            'FROM solution\n'
-            'WHERE v1 = t and %V<V% and d = %K%\n'
-            'ORDER BY %V%;'
+            'WITH RECURSIVE solution(%V%, t, d) AS (\n'
+            '    SELECT %SOURCE%, %DESTINATION_K%, 1 \n'
+            '    FROM %TABLE% \n'
+            '    UNION ALL \n'
+            '    SELECT %SOLUTION.V%, solution.t, %TABLE%.%DESTINATION%, solution.d+1 \n'
+            '    FROM solution \n'
+            '    JOIN %TABLE% ON %TABLE%.%SOURCE% = solution.t \n'
+            '    WHERE \n'
+            '    %LOOP%\n'
+            '    d<%K%-1) \n'
+            'SELECT %Vk%, t \n'
+            'FROM solution \n'
+            'WHERE %V<V% AND v%K%<t\n'
+            'ORDER BY %Vk%, t;\n'
         )
 
         query = QueryBuilder(args, save=True).build(query_template)
+
+        print('Executing query...')
 
         cur.execute(query)
 
         conn.commit()
 
-        print(OUTPUT_TABLE_NAME)
+        print('Result written to table: ', OUTPUT_TABLE_NAME)
