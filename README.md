@@ -34,6 +34,11 @@ ssh_username=<your_ssh_username>
 ssh_password=<your_ssh_password>
 ```
 
+Before running the script, run:
+```bash
+pip install -r requirements.txt
+```
+
 Syntax for program call:
 ```bash
 python3 graphsql.py "task=clique;table=wikiVote;source=i;destination=j;k=3"
