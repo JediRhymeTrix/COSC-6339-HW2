@@ -1,2 +1,3 @@
 vertica-python
 sshtunnel
+networkx
