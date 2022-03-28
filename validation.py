@@ -11,7 +11,7 @@ class Validation:
         # self.cl = sql_cliques
         self.nodes = G.nodes
         self.edges = G.edges
-        self.k = k
+        self.k = int(k)
 
     def get_subcliques(self, clique):
         # algorithm for finding subcliques from a complete graph/clique
