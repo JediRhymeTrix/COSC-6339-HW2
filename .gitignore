@@ -1,4 +1,9 @@
+# editor junk
 .vscode/
 
+# python junk
+__pycache__
+
+# program artifacts
 *.cfg
 *.log
