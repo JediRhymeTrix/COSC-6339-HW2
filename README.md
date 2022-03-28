@@ -36,7 +36,7 @@ ssh_password=<your_ssh_password>
 
 Before running the script, run:
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Syntax for program call:
