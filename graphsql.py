@@ -25,7 +25,7 @@ class Arguments(object):
                 setattr(self, key, value)
         except:
             print('Invalid arguments')
-            print('Expected format: python3 graphsql.py "task=<diameter|clique>;table=<name>;source=<id>;destination=<id>;k=<max threshold>"')
+            print('Expected format: python3 graphsql.py "task=<diameter|clique|clique+validate>;table=<name>;source=<id>;destination=<id>;k=<max threshold>"')
             sys.exit(1)
 
 
@@ -180,8 +180,8 @@ def read_config():
 if __name__ == '__main__':
     args = Arguments()
 
-    assert(args.task == 'clique'), \
-        'Task must be clique'
+    assert(args.task in ['clique', 'clique+validate']), \
+        'Task must be clique or clique+validate'
 
     config = read_config()
 
@@ -219,20 +219,23 @@ if __name__ == '__main__':
         conn.commit()
 
         print('Result written to table: ', OUTPUT_TABLE_NAME)
-        #replace edge list with edge list from dataset
-        cur.execute(f"SELECT * FROM {args.table}")
-        rows = cur.fetchall()
-        edge_list = []
-        for i, row in enumerate(rows):
-            edge_list.append(row)
-        cur.execute(f"SELECT * FROM {OUTPUT_TABLE_NAME}")
-        rows = cur.fetchall()
-        sql_cliques = []
-        for i, row in enumerate(rows):
-            sql_cliques.append(row)
-        val = Validation(edge_list, args.k)
-        if val.test_find_cliques(sql_cliques):
-            print("Results are correct")
-        else:
-            print("Results are incorrect")
+
+        if (args.task == 'clique+validate'):
+            print('Validating result...')
+            #replace edge list with edge list from dataset
+            cur.execute(f"SELECT * FROM {args.table}")
+            rows = cur.fetchall()
+            edge_list = []
+            for i, row in enumerate(rows):
+                edge_list.append(row)
+            cur.execute(f"SELECT * FROM {OUTPUT_TABLE_NAME}")
+            rows = cur.fetchall()
+            sql_cliques = []
+            for i, row in enumerate(rows):
+                sql_cliques.append(row)
+            val = Validation(edge_list, args.k)
+            if val.test_find_cliques(sql_cliques):
+                print("Results are correct")
+            else:
+                print("Results are incorrect")
 
