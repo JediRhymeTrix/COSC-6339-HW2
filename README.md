@@ -41,7 +41,7 @@ pip3 install -r requirements.txt
 
 Syntax for program call:
 ```bash
-python3 graphsql.py "task=clique;table=wikiVote;source=i;destination=j;k=3"
+python3 graphsql.py "task=clique;table=cliqueTest;source=i;destination=j;k=3"
 ```
 *Note: If `task=clique+validate` is passed, the validation script will be run after the query generates the result.*
 
