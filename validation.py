@@ -6,7 +6,11 @@ class Validation:
         # edge_list = the edge list table E(i, j, v) where i, j are 2 different vertices and v is the distance
         # between i, j k = the maximal size clique threshold
         G = nx.Graph()
-        G.add_weighted_edges_from(edge_list)
+        # for edge list table that does not currently have a weighted edge
+        if len(edge_list[0]) == 2:
+            G.add_edges_from(edge_list)
+        else:
+            G.add_weighted_edges_from(edge_list)
         self.G = G
         # self.cl = sql_cliques
         self.nodes = G.nodes
